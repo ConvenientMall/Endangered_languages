@@ -92,7 +92,7 @@ d3.csv("database_file.csv").then((data) => {
             entries[x].values[y].tooltip = "Known as:<br/>" + entries[x].values[y].name + "<br/>Status:" + vit;
             entries[x].values[y].status = vit;
             entries[x].values[y].color = fill;
-            entries[x].values[y].radius = .1;
+            entries[x].values[y].radius = .3;
         }
 
     }
