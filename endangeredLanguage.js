@@ -33,7 +33,7 @@
         .force("x", d3.forceX(width / 2).strength(.05))
         .force("y", d3.forceY(height / 2).strength(.05))
         .force('collision', d3.forceCollide(function (d) {
-            return Math.sqrt(d.radius / Math.PI) * 20;
+            return Math.sqrt(d.radius / Math.PI) * 10;
         }).strength(1))
         .on("tick", ticked);
     d3.csv("database_file.csv").then((data) => {
@@ -45,55 +45,63 @@
             .entries(data);
         for (let x = 0; x < entries.length; x++) {
             entries[x].name = entries[x].key;
-            entries[x].radius = .3 * entries[x].values.length;
-            entries[x].color = d3.interpolateSinebow(x / (entries.length));
+            entries[x].radius = entries[x].values.length;
             entries[x].tooltip = "Language Family:<br/>" + entries[x].key + "<br/>Number of Languages:<br/>" + entries[x].values.length;
             entries[x].chidren = true;
+            var colr = 0;
             for (let y = 0; y < entries[x].values.length; y++) {
                 var status = entries[x].values[y].status;
-
                 var vit = "";
                 var fill = "";
-
                 if (status.indexOf("At risk") !== -1) {
+                    colr += 7;
                     vit = "At risk";
                     fill = d3.interpolateRdYlGn(7 / 8);
                 } else if (status.indexOf("Vulnerable") !== -1) {
+                    colr += 6;
                     vit = "Vulnerable";
                     fill = d3.interpolateRdYlGn(6 / 8);
                 } else if (status.indexOf("Threatened") !== -1) {
+                    colr += 5;
                     vit = "Threatened";
                     fill = d3.interpolateRdYlGn(5 / 8);
 
                 } else if (status.indexOf("Endangered") !== -1) {
+                    colr += 4;
                     vit = "Endangered";
                     fill = d3.interpolateRdYlGn(4 / 8);
 
                 } else if (status.indexOf("Severely Endangered") !== -1) {
+                    colr += 3;
                     vit = "Severely Endangered";
                     fill = d3.interpolateRdYlGn(3 / 8);
 
                 } else if (status.indexOf("Critically Endangered") !== -1) {
+                    colr += 2;
                     vit = "Critically Endangered";
                     fill = d3.interpolateRdYlGn(2 / 8);
                 } else if (status.indexOf("Awakening") !== -1) {
+                    colr += 1;
                     vit = "Awakening";
                     fill = d3.interpolateRdYlGn(1 / 8);
 
                 } else if (status.indexOf("Dormant") !== -1) {
+                    colr += 0;
                     vit = "Dormant";
                     fill = d3.interpolateRdYlGn(0 / 8);
 
                 } else {
+                    colr += 1;
                     vit = "Unknown";
                     fill = d3.interpolateBuGn(0);
                 }
                 entries[x].values[y].tooltip = "Known as:<br/>" + entries[x].values[y].name + "<br/>Status:" + vit;
                 entries[x].values[y].status = vit;
                 entries[x].values[y].color = fill;
-                entries[x].values[y].radius = .3;
+                entries[x].values[y].radius = 1;
                 entries[x].values[y].chidren = false;
             }
+            entries[x].color = d3.interpolateRdYlGn(colr / ((entries[x].values.length) * 8));
 
         }
 
@@ -196,7 +204,7 @@
 
         nodeEnter.append("circle")
             .attr("r", function (d) {
-                return Math.sqrt(d.radius / Math.PI) * 20
+                return Math.sqrt(d.radius / Math.PI) * 10
             })
             .attr("fill", function (d, i) {
                 return d.color;
@@ -224,7 +232,7 @@
                 return d.name.substring(0, 24);
             })
             .style("font-size", function (d) {
-                return Math.sqrt(d.radius / Math.PI) * 4;
+                return Math.sqrt(d.radius / Math.PI) * 2;
             })
             .style("text-anchor", "middle")
             .attr("fill", "black")
