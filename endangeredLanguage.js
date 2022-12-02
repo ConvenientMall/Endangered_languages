@@ -1,4 +1,4 @@
-    var margin = {
+       var margin = {
             left: 80,
             right: 80,
             top: 50,
@@ -40,7 +40,8 @@
         const mySet1 = new Set()
         var entries = d3.nest()
             .key(function (d) {
-                return d.classification.split(";")[0];
+
+                return d.classification.split(";")[0].split(",")[0];
             })
             .entries(data);
         for (let x = 0; x < entries.length; x++) {
