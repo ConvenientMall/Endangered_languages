@@ -252,7 +252,7 @@
 
         nodeEnter.append("circle")
             .attr("r", function (d) {
-                return Math.sqrt(d.radius / Math.PI) * 10
+                return Math.sqrt(d.radius / Math.PI) * 12
             })
             .attr("fill", function (d, i) {
                 return d.color;
