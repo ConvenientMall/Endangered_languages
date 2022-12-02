@@ -1,4 +1,4 @@
-      var margin = {
+    var margin = {
             left: 80,
             right: 80,
             top: 50,
@@ -9,7 +9,7 @@
         roots,
         families,
         familyname,
-        languages;
+        languages
 
     var svg = d3.select("body").append("svg")
         .call(d3.zoom().scaleExtent([1 / 2, 100]).translateExtent([[-width, -height], [width * 2, height * 2]]).on('zoom', zoomed))
@@ -30,10 +30,10 @@
         .style('opacity', 0);
 
     var simulation = d3.forceSimulation()
-        .force("x", d3.forceX(width / 2).strength(.025))
-        .force("y", d3.forceY(height / 2).strength(.025))
+        .force("x", d3.forceX(width / 2).strength(.055))
+        .force("y", d3.forceY(height / 2).strength(.055))
         .force('collision', d3.forceCollide(function (d) {
-            return Math.sqrt(d.radius / Math.PI) * 10;
+            return Math.sqrt(d.radius / Math.PI) * 10.5;
         }).strength(1))
         .on("tick", ticked);
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,6 +84,7 @@
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     d3.csv("database_file.csv").then((data) => {
+        familyname = "Language Families"
         const mySet1 = new Set()
         var entries = d3.nest()
             .key(function (d) {
@@ -252,7 +253,7 @@
 
         nodeEnter.append("circle")
             .attr("r", function (d) {
-                return Math.sqrt(d.radius / Math.PI) * 12
+                return Math.sqrt(d.radius / Math.PI) * 10
             })
             .attr("fill", function (d, i) {
                 return d.color;
@@ -298,7 +299,7 @@
             .style("text-anchor", "middle")
             .attr("fill", "black")
             .attr('x', width / 2)
-            .attr('y', height / 2 - 300);
+            .attr('y', height / 2 - 500);
 
         node = nodeEnter.merge(node)
         simulation.nodes(nodes)
@@ -313,16 +314,16 @@
                 familyname = d.key;
                 roots = d.values;
             } else {
-                familyname = "";
+                familyname = "Language Families";
                 roots = families;
             }
             update()
             console.log("start")
-            simulation.force("x", d3.forceX(width / 2).strength(.2))
-                .force("y", d3.forceY(height / 2).strength(.2))
+            simulation.force("x", d3.forceX(width / 2).strength(.6))
+                .force("y", d3.forceY(height / 2).strength(.6))
             setTimeout(function () {
-                simulation.force("x", d3.forceX(width / 2).strength(.05))
-                    .force("y", d3.forceY(height / 2).strength(.05))
+                simulation.force("x", d3.forceX(width / 2).strength(.055))
+                    .force("y", d3.forceY(height / 2).strength(.055))
             }, 3500);
             console.log("end")
 
@@ -330,7 +331,7 @@
     }
 
     function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.015).restart()
+        if (!d3.event.active) simulation.alphaTarget(0.1).restart()
         d.fx = d.x
         d.fy = d.y
     }
@@ -341,7 +342,7 @@
     }
 
     function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.015)
+        if (!d3.event.active) simulation.alphaTarget(0.005)
         d.fx = null
         d.fy = null
     }
