@@ -1,4 +1,4 @@
-       var margin = {
+      var margin = {
             left: 80,
             right: 80,
             top: 50,
@@ -233,7 +233,7 @@
                 return d.name.substring(0, 24);
             })
             .style("font-size", function (d) {
-                return Math.sqrt(d.radius / Math.PI) * 2;
+                return Math.sqrt(d.radius / Math.PI) * 2 + "px";
             })
             .style("text-anchor", "middle")
             .attr("fill", "black")
@@ -246,7 +246,7 @@
                 return familyname;
             })
             .style("font-size", function (d) {
-                return 50;
+                return 50 + "px";
             })
             .style("text-anchor", "middle")
             .attr("fill", "black")
