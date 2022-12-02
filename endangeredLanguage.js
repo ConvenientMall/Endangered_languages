@@ -1,4 +1,4 @@
-    var margin = {
+      var margin = {
             left: 80,
             right: 80,
             top: 50,
@@ -30,8 +30,8 @@
         .style('opacity', 0);
 
     var simulation = d3.forceSimulation()
-        .force("x", d3.forceX(width / 2).strength(.05))
-        .force("y", d3.forceY(height / 2).strength(.05))
+        .force("x", d3.forceX(width / 2).strength(.025))
+        .force("y", d3.forceY(height / 2).strength(.025))
         .force('collision', d3.forceCollide(function (d) {
             return Math.sqrt(d.radius / Math.PI) * 10;
         }).strength(1))
@@ -317,11 +317,20 @@
                 roots = families;
             }
             update()
+            console.log("start")
+            simulation.force("x", d3.forceX(width / 2).strength(.2))
+                .force("y", d3.forceY(height / 2).strength(.2))
+            setTimeout(function () {
+                simulation.force("x", d3.forceX(width / 2).strength(.05))
+                    .force("y", d3.forceY(height / 2).strength(.05))
+            }, 3500);
+            console.log("end")
+
         }
     }
 
     function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.025).restart()
+        if (!d3.event.active) simulation.alphaTarget(0.015).restart()
         d.fx = d.x
         d.fy = d.y
     }
