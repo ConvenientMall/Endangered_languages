@@ -1,4 +1,4 @@
-      var margin = {
+    var margin = {
             left: 80,
             right: 80,
             top: 50,
@@ -36,6 +36,53 @@
             return Math.sqrt(d.radius / Math.PI) * 10;
         }).strength(1))
         .on("tick", ticked);
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+    // select the svg area
+
+    // create a list of keys
+    var keys = ["At risk", "Vulnerable", "Threatened", "Endangered", "Severely Endangered", "Critically Endangered", "Awakening", "Dormant"]
+
+    // Usually you have a color scale in your chart already
+    var color = d3.scaleOrdinal()
+        .domain(keys)
+        .range(d3.schemeRdYlGn[10].slice(0, 9).reverse());
+
+    // Add one dot in the legend for each name.
+    var size = 20
+    svg.selectAll("mydots")
+        .data(keys)
+        .enter()
+        .append("rect")
+        .attr("x", +800)
+        .attr("y", function (d, i) {
+            return 100 + i * (size + 5)
+        }) // 100 is where the first dot appears. 25 is the distance between dots
+        .attr("width", size)
+        .attr("height", size)
+        .style("fill", function (d) {
+            return color(d)
+        })
+
+    // Add one dot in the legend for each name.
+    svg.selectAll("mylabels")
+        .data(keys)
+        .enter()
+        .append("text")
+        .attr("x", +800 + size * 1.2)
+        .attr("y", function (d, i) {
+            return 100 + i * (size + 5) + (size / 2)
+        }) // 100 is where the first dot appears. 25 is the distance between dots
+        .style("fill", function (d) {
+            return color(d)
+        })
+        .text(function (d) {
+            return d
+        })
+        .attr("text-anchor", "left")
+        .style("alignment-baseline", "middle")
+
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
     d3.csv("database_file.csv").then((data) => {
         const mySet1 = new Set()
         var entries = d3.nest()
@@ -55,41 +102,41 @@
                 var vit = "";
                 var fill = "";
                 if (status.indexOf("At risk") !== -1) {
-                    colr += 7;
+                    colr += 9;
                     vit = "At risk";
-                    fill = d3.interpolateRdYlGn(7 / 8);
+                    fill = d3.interpolateRdYlGn(9 / 10);
                 } else if (status.indexOf("Vulnerable") !== -1) {
-                    colr += 6;
+                    colr += 8;
                     vit = "Vulnerable";
-                    fill = d3.interpolateRdYlGn(6 / 8);
+                    fill = d3.interpolateRdYlGn(8 / 10);
                 } else if (status.indexOf("Threatened") !== -1) {
-                    colr += 5;
+                    colr += 7;
                     vit = "Threatened";
-                    fill = d3.interpolateRdYlGn(5 / 8);
+                    fill = d3.interpolateRdYlGn(7 / 10);
 
                 } else if (status.indexOf("Endangered") !== -1) {
-                    colr += 4;
+                    colr += 6;
                     vit = "Endangered";
-                    fill = d3.interpolateRdYlGn(4 / 8);
+                    fill = d3.interpolateRdYlGn(6 / 10);
 
                 } else if (status.indexOf("Severely Endangered") !== -1) {
-                    colr += 3;
+                    colr += 4;
                     vit = "Severely Endangered";
-                    fill = d3.interpolateRdYlGn(3 / 8);
+                    fill = d3.interpolateRdYlGn(4 / 10);
 
                 } else if (status.indexOf("Critically Endangered") !== -1) {
-                    colr += 2;
+                    colr += 3;
                     vit = "Critically Endangered";
-                    fill = d3.interpolateRdYlGn(2 / 8);
+                    fill = d3.interpolateRdYlGn(3 / 10);
                 } else if (status.indexOf("Awakening") !== -1) {
-                    colr += 1;
+                    colr += 2;
                     vit = "Awakening";
-                    fill = d3.interpolateRdYlGn(1 / 8);
+                    fill = d3.interpolateRdYlGn(2 / 10);
 
                 } else if (status.indexOf("Dormant") !== -1) {
-                    colr += 0;
+                    colr += 1;
                     vit = "Dormant";
-                    fill = d3.interpolateRdYlGn(0 / 8);
+                    fill = d3.interpolateRdYlGn(1 / 10);
 
                 } else {
                     colr += 1;
@@ -102,7 +149,7 @@
                 entries[x].values[y].radius = 1;
                 entries[x].values[y].chidren = false;
             }
-            entries[x].color = d3.interpolateRdYlGn(colr / ((entries[x].values.length) * 8));
+            entries[x].color = d3.interpolateRdYlGn(colr / ((entries[x].values.length) * 10));
 
         }
 
@@ -285,7 +332,7 @@
     }
 
     function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.025)
+        if (!d3.event.active) simulation.alphaTarget(0.015)
         d.fx = null
         d.fy = null
     }
