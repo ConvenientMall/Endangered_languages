@@ -393,7 +393,7 @@
                 return familyname;
             })
             .style("font-size", function (d) {
-                return 50 + "px";
+                return 25 + "px";
             })
             .style("text-anchor", "middle")
             .attr("fill", "black")
