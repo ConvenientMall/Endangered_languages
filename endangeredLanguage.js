@@ -356,6 +356,7 @@
     //Function that 
     function display_Families_Country(country_name)
     {
+        svg.selectAll(".titleFamily").remove();
         if(last_clicked == country_name)
         {
             console.log("RETURN ALL NODES")
@@ -367,43 +368,62 @@
                 //console.log("countries_to_display ", countries_to_display);
                 for(var i = 0; i < countries_to_display.length; i++)
                 {
-                    return d.values[0].country
+                    return d.values[i].country
                 }
                 
             })
             roots = families;
+            familyname = "Language Families";
+            last_clicked = " ";
             update();
             simulation.alphaTarget(.3).restart();
-            last_clicked = country_name;
         }
         else if(last_clicked!=country_name)
         {
-            console.log("Country global_country_list:  ", global_country_list);
-            console.log("Country Clicked:  ", country_name);
-            //countryList = data[i].country.split(";");
-
+            const langNames = []
+            console.log("Return nodes from country ", country_name);
+            var num = 0
             families = orignal_entires.filter(function(d)
             {
-                //console.log(global_data)
-                //console.log("D", d.values[0].country);
-                const countries_to_display = d.values[0].country.split(";")
-                //console.log("bruh ", bruh);
-                for(var i = 0; i < countries_to_display.length; i++)
+                //console.log(d)
+                for(var i = 0; i < d.values.length;i++)
                 {
-                    if(countries_to_display[i] == country_name)
+                    //console.log(d.key)
+                    //console.log(d.values[i])
+                    const countries_to_display = d.values[i].country.split(";")
+                    //console.log(countries_to_display)
+                    for(var j = 0; j < countries_to_display.length; j++)
                     {
-                        console.log("countries_to_display: ", countries_to_display[i]);
-                        console.log(d.values[0].country);
-                        return d.values[0].country
+                        //console.log(countries_to_display[j]);
+                        if(countries_to_display[j] == country_name)
+                        {
+
+                            num++;
+                            //console.log(country_name);
+                            //console.log(d.values);
+                            langNames.push(d.values[i])
+                            //d.values.name
+                            //console.log(d.values[i]);
+                            //return d.values[i];
+                        }
                     }
-                }
-                
+                }   
             })
+            console.log(num);
+            console.log(langNames.length);
+            console.log(langNames);
+            families = langNames;
+            //console.log(k);
+            // console.log(langNames);
             roots = families;
+            //console.log("roots", families);
+            familyname = country_name;
+            last_clicked = country_name;
             update();
             simulation.alphaTarget(.3).restart();
-            last_clicked = country_name;
+            //familyname = "Language Families";
         }
+        
         
     }
 
@@ -541,6 +561,7 @@
             if (d.chidren) { //if d.children is true
                 familyname = d.key; // familyname becomes the familyname of languages
                 roots = d.values; //roots which is what is spawned becomes the languages in that family
+                console.log(roots)
             } else {
                 familyname = "Language Families"; //if it is false
                 roots = families; //return to defaults
