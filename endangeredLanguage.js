@@ -9,7 +9,11 @@
         roots,
         families,
         familyname,
-        languages
+        languages,
+        orignal_entires,
+        global_data,
+        global_country_list
+        last_clicked = " ";
 
     //Map stuff -start
     var grnColor = d3.scaleThreshold()
@@ -127,9 +131,13 @@
     //gets database data
     d3.csv("database_file.csv").then((data) => {
         console.log(data)
+        global_data = data
         const densityMap = new Map();
         for (let i = 0; i < data.length; i++) {
+            //console.log("data[i].country ", data[i].country)
             countryList = data[i].country.split(";");
+            //console.log("CL: ", countryList);
+            global_country_list = countryList;
             for (let i = 0; i < countryList.length; i++) {
                 if (densityMap[countryList[i]] === undefined) {
                     densityMap[countryList[i]] = 0;
@@ -232,7 +240,7 @@
                 //.attr("fill", "green")
                 .attr("d", path)
                 .on("mouseover", function (event, d) {
-                    console.log(event.properties.name);
+                    //console.log("Country", event.properties.name);
                     divMap.transition()
                         .duration(200)
                         .style("opacity", .9);
@@ -244,30 +252,79 @@
                     divMap.transition()
                         .duration(500)
                         .style("opacity", 0);
+                })
+                .on("click", function(d){
+                    //console.log("Country Clicked:  ", d.properties.name);
+                    var country_name = d.properties.name;
+                    display_Families_Country(country_name);
                 });
 
         });
 
 
         //map
+        //Fill Sldier Bar
+        var fillSlider = d3
+        .sliderHorizontal()
+        .min(1)
+        .max(d3.max(entries, function (d) {
+            return d.values.length;
+        }))
+        .default([1,d3.max(entries, function (d) {
+            return d.values.length;
+        })])
+        .step(1)
+        .width(300)
+        .displayValue(true)
+        .fill('#2196f3')
+        .on('onchange', (val) => {
+            d3.select('p#value-fill').text(val[0] + " " + val[1]);
+        });
 
+        var sFill = d3
+            .select('div#fillSlider')
+            .append('svg')
+            .attr('width', 500)
+            .attr('height', 100)
+            .append('g')
+            .attr('transform', 'translate(30,30)');
+
+        sFill.call(fillSlider);
+        d3.select('p#value-fill').text((fillSlider.value()));
         //slider - START
+        var upper =500, lower =1
+        orignal_entires = entries
         var slider = d3
             .sliderHorizontal()
-            .min(10)
+            .min(1)
             .max(d3.max(entries, function (d) {
                 return d.values.length;
             }))
-            .default(d3.max(entries, function (d) {
+            .default([1,d3.max(entries, function (d) {
                 return d.values.length;
-            }))
+            })])
             .step(1)
             .width(300)
-            .displayValue(false)
+            .displayValue(true)
+            .fill('#2196f3')
             .on('onchange', (val) => {
                 //where its set
-                d3.select('#value').text(val);
+                //d3.select("#rangeLabel").text(val);
+                lower = val[0];
+                upper = val[1];
+                //d3.select('#rangeLabel').text("Language Families Between: " + val[0] + " " + val[1]);
+                //console.log("val0: ",val);
+                d3.select('#rangeLabel').text("Language Families with " + slider.value().join(" to ")+ " members");
+                setRadius(val);
             });
+        
+        console.log("val[0]: ",lower);
+        console.log("val[1]: ",upper);
+        //d3.select('#rangeLabel').text("Language Families Between: " + lower + " " + upper);
+        d3.select('#rangeLabel').text("Language Families with " + slider.value().join(" to ")+ " members");
+            
+
+        //d3.select('#rangeLabel').append("svg").text("Families Between: " + val[0] + " " + val[1]);
 
         d3.select('#slider')
             .append('svg')
@@ -295,6 +352,78 @@
         }
 
     });
+
+    //Function that 
+    function display_Families_Country(country_name)
+    {
+        if(last_clicked == country_name)
+        {
+            console.log("RETURN ALL NODES")
+            families = orignal_entires.filter(function(d)
+            {
+                //console.log(global_data)
+                //console.log("D", d.values[0].country);
+                const countries_to_display = d.values[0].country.split(";")
+                //console.log("countries_to_display ", countries_to_display);
+                for(var i = 0; i < countries_to_display.length; i++)
+                {
+                    return d.values[0].country
+                }
+                
+            })
+            roots = families;
+            update();
+            simulation.alphaTarget(.3).restart();
+            last_clicked = country_name;
+        }
+        else if(last_clicked!=country_name)
+        {
+            console.log("Country global_country_list:  ", global_country_list);
+            console.log("Country Clicked:  ", country_name);
+            //countryList = data[i].country.split(";");
+
+            families = orignal_entires.filter(function(d)
+            {
+                //console.log(global_data)
+                //console.log("D", d.values[0].country);
+                const countries_to_display = d.values[0].country.split(";")
+                //console.log("bruh ", bruh);
+                for(var i = 0; i < countries_to_display.length; i++)
+                {
+                    if(countries_to_display[i] == country_name)
+                    {
+                        console.log("countries_to_display: ", countries_to_display[i]);
+                        console.log(d.values[0].country);
+                        return d.values[0].country
+                    }
+                }
+                
+            })
+            roots = families;
+            update();
+            simulation.alphaTarget(.3).restart();
+            last_clicked = country_name;
+        }
+        
+    }
+
+    function setRadius(val)
+    {
+        //minRange = val[0]
+        //maxRange = val[1]
+        //console.log("val[0]: ",minRange);
+        //console.log("val[1]: ",maxRange);
+
+        families = orignal_entires.filter(function(d){
+            //console.log("Values", d.values.length);
+            return (val[0] <= d.values.length) &&  (d.values.length <= val[1]);
+        })
+        //families = entries;
+        roots = families;
+        update();
+        simulation.alphaTarget(.3).restart();
+
+    }
 
     function ticked() {
         link.attr("x1", function (d) {
