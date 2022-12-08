@@ -197,6 +197,9 @@
                 })
                 .on("click", function (d) {
                     //console.log("Country Clicked:  ", d.properties.name);
+                    d3.select(".selected").classed("selected", false);
+                    //console.log("Selected");
+                    d3.select(this).classed("selected", true);
                     var country_name = d.properties.name;
                     display_Families_Country(country_name);
                 });

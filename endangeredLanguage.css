@@ -36,6 +36,14 @@ div.tooltipMap {
     stroke-linejoin: round;
 }
 
+.country:hover {
+    fill: yellow;
+}
+
+.selected {
+    fill: yellow;
+}
+
 .text {
     font-family: sans-serif;
 }
