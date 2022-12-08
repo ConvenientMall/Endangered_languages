@@ -10,6 +10,7 @@ div.tooltip {
     border-radius: 8px;
     pointer-events: none;
 }
+
 div.tooltipMap {
     position: absolute;
     text-align: center;
@@ -22,8 +23,24 @@ div.tooltipMap {
     border-radius: 8px;
     pointer-events: none;
 }
+
 #slider-container {
     position: relative;
     height: 30px;
     background-color: #eeeef5;
+}
+
+.country {
+    stroke: DarkGray;
+    stroke-width: .25;
+    stroke-linejoin: round;
+}
+
+.text {
+    font-family: sans-serif;
+}
+
+svg {
+    display: block;
+    margin: auto;
 }

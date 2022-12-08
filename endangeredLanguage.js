@@ -6,6 +6,7 @@
         },
         width = 960 - margin.left - margin.right,
         height = 500 - margin.top - margin.bottom,
+        familiesOG,
         roots,
         families,
         familyname,
@@ -13,7 +14,7 @@
         orignal_entires,
         global_data,
         global_country_list
-        last_clicked = " ";
+    last_clicked = " ";
 
     //Map stuff -start
     var grnColor = d3.scaleThreshold()
@@ -70,6 +71,7 @@
         .force("y", d3.forceY(height / 2).strength(.055))
         //sets the radius of collision. Added .5 to create airgap
         .force('collision', d3.forceCollide(function (d) {
+            //console.log(d.radius);
             return Math.sqrt(d.radius / Math.PI) * 5.5;
         }).strength(.8))
         //ticks for simulation
@@ -130,8 +132,11 @@
 
     //gets database data
     d3.csv("database_file.csv").then((data) => {
-        console.log(data)
-        global_data = data
+        var entries = langToFamlies(data);
+
+        familyname = "Language Families" //sets the title to family name
+
+        //map
         const densityMap = new Map();
         for (let i = 0; i < data.length; i++) {
             //console.log("data[i].country ", data[i].country)
@@ -146,10 +151,369 @@
             }
         }
 
-        //console.log(densityMap)
+        d3.json("world.topojson").then(function (topology) {
+            //console.log(topojson.feature(topology, topology.objects.countries).features)
+            g.attr("class", "country")
+                .selectAll("path")
+                .data(topojson.feature(topology, topology.objects.countries).features)
+                .enter().append("path")
+                .attr("class", "country")
+                .attr("fill", function (d) {
+                    return (grnColor(densityMap[d.properties.name]));
+                })
+                //.attr("fill", "green")
+                .attr("d", path)
+                .on("mouseover", function (event, d) {
+                    //console.log("Country", event.properties.name);
+                    divMap.transition()
+                        .duration(200)
+                        .style("opacity", .9);
+                    divMap.html(event.properties.name + "<br/>" + "Language number: " + densityMap[event.properties.name])
+                        .style('left', d3.event.pageX + 'px')
+                        .style('top', d3.event.pageY - 28 + 'px');
+                })
+                .on("mouseout", function (d) {
+                    divMap.transition()
+                        .duration(500)
+                        .style("opacity", 0);
+                })
+                .on("click", function (d) {
+                    //console.log("Country Clicked:  ", d.properties.name);
+                    var country_name = d.properties.name;
+                    display_Families_Country(country_name);
+                });
 
-        familyname = "Language Families" //sets the title to family name
+        });
 
+
+        //map
+        //Fill Sldier Bar
+        var fillSlider = d3
+            .sliderHorizontal()
+            .min(1)
+            .max(d3.max(entries, function (d) {
+                return d.values.length;
+            }))
+            .default([1, d3.max(entries, function (d) {
+                return d.values.length;
+            })])
+            .step(1)
+            .width(300)
+            .displayValue(true)
+            .fill('#2196f3')
+            .on('onchange', (val) => {
+                d3.select('p#value-fill').text(val[0] + " " + val[1]);
+            });
+
+        var sFill = d3
+            .select('div#fillSlider')
+            .append('svg')
+            .attr('width', 500)
+            .attr('height', 100)
+            .append('g')
+            .attr('transform', 'translate(30,30)');
+
+        sFill.call(fillSlider);
+        d3.select('p#value-fill').text((fillSlider.value()));
+        //slider - START
+        var upper = 500,
+            lower = 1
+        orignal_entires = entries
+        var slider = d3
+            .sliderHorizontal()
+            .min(1)
+            .max(d3.max(entries, function (d) {
+                return d.values.length;
+            }))
+            .default([1, d3.max(entries, function (d) {
+                return d.values.length;
+            })])
+            .step(1)
+            .width(300)
+            .displayValue(true)
+            .fill('#2196f3')
+            .on('onchange', (val) => {
+                //where its set
+                //d3.select("#rangeLabel").text(val);
+                lower = val[0];
+                upper = val[1];
+                //d3.select('#rangeLabel').text("Language Families Between: " + val[0] + " " + val[1]);
+                //console.log("val0: ",val);
+                d3.select('#rangeLabel').text("Language Families with " + slider.value().join(" to ") + " members");
+                setRadius(val);
+            });
+
+        console.log("val[0]: ", lower);
+        console.log("val[1]: ", upper);
+        //d3.select('#rangeLabel').text("Language Families Between: " + lower + " " + upper);
+        d3.select('#rangeLabel').text("Language Families with " + slider.value().join(" to ") + " members");
+
+
+        //d3.select('#rangeLabel').append("svg").text("Families Between: " + val[0] + " " + val[1]);
+
+        d3.select('#slider')
+            .append('svg')
+            .attr('width', 500)
+            .attr('height', 100)
+            .append('g')
+            .attr('transform', 'translate(30,30)')
+            .call(slider);
+        //slider - END
+
+        ///families stores families
+        //roots is what is spawned
+        familiesOG = entries;
+        families = familiesOG;
+        families.title = "Language Families";
+        roots = families;
+        update();
+
+    });
+
+    //Function that 
+    function display_Families_Country(country_name) {
+        var filler
+        svg.selectAll(".titleFamily").remove();
+        if (last_clicked == country_name) {
+            //console.log("RETURN ALL NODES")
+            filler = orignal_entires.filter(function (d) {
+                //console.log(global_data)
+                //console.log("D", d.values[0].country);
+                const countries_to_display = d.values[0].country.split(";")
+                //console.log("countries_to_display ", countries_to_display);
+                for (var i = 0; i < countries_to_display.length; i++) {
+                    return d.values[i].country
+                }
+
+            })
+            roots = familiesOG;
+            families = familiesOG;
+            families.title = "Language Families";
+            familyname = "Language Families";
+            last_clicked = " ";
+            update();
+        } else if (last_clicked != country_name) {
+            const langNames = []
+            var num = 0
+            filler = orignal_entires.filter(function (d) {
+                //console.log(d)
+                for (var i = 0; i < d.values.length; i++) {
+                    //console.log(d.key)
+                    //console.log(d.values[i])
+                    const countries_to_display = d.values[i].country.split(";")
+                    //console.log(countries_to_display)
+                    for (var j = 0; j < countries_to_display.length; j++) {
+                        //console.log(countries_to_display[j]);
+                        if (countries_to_display[j] == country_name) {
+
+                            num++;
+                            //console.log(country_name);
+                            //console.log(d.values);
+                            langNames.push(d.values[i])
+                            //d.values.name
+                            //console.log(d.values[i]);
+                            //return d.values[i];
+                        }
+                    }
+                }
+                familyname = country_name;
+                last_clicked = country_name;
+                roots = langToFamlies(langNames);
+                families = roots;
+                families.title = country_name;
+            });
+
+            update();
+        }
+
+
+    }
+
+    function setRadius(val) {
+        //minRange = val[0]
+        //maxRange = val[1]
+        //console.log("val[0]: ",minRange);
+        //console.log("val[1]: ",maxRange);
+
+        families = orignal_entires.filter(function (d) {
+            //console.log("Values", d.values.length);
+            return (val[0] <= d.values.length) && (d.values.length <= val[1]);
+        })
+        //families = entries;
+        roots = families;
+        update();
+
+    }
+
+    function ticked() {
+        link.attr("x1", function (d) {
+                return d.source.x;
+            })
+            .attr("y1", function (d) {
+                return d.source.y;
+            })
+            .attr("x2", function (d) {
+                return d.target.x;
+            })
+            .attr("y2", function (d) {
+                return d.target.y;
+            });
+
+        node
+            .attr('transform', function (d) {
+                return `translate(${d.x}, ${d.y})`
+            })
+    }
+
+    function update() {
+        svg.selectAll(".titleFamily").remove();
+        const nodes = (roots);
+        if (nodes._values) {
+            //console.log(node)
+        }
+        svg.selectAll(".node").remove();
+        //spawns nodes
+        node = svg
+            .selectAll('.node')
+            .data(nodes, function (d) {
+                return d.name;
+            })
+        //deletes nodes
+        node.exit().remove();
+        svg.selectAll(".familyTitle").remove();
+        const nodeEnter = node
+            .enter()
+            .append("g")
+            .attr("class", "node")
+            .on('click', (d) => {
+                clicked(d); //when clicked removes the tooltip and also does the click function
+                div
+                    .transition()
+                    .duration(500)
+                    .style('opacity', 0)
+
+            })
+
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
+
+        //nodeEnter.exit().remove();
+        //spawns nodes
+
+        nodeEnter.append("circle")
+            .attr("r", function (d) {
+                return Math.sqrt(d.radius / Math.PI) * 5
+            })
+            .attr("fill", function (d, i) {
+                return d.color;
+            })
+            .on('mouseover', d => {
+                div
+                    .transition()
+                    .duration(200)
+                    .style('opacity', 0.9);
+                div
+                    .html(d.tooltip)
+                    .style('left', d3.event.pageX + 'px')
+                    .style('top', d3.event.pageY - 28 + 'px');
+            })
+            .on('mouseout', () => {
+                div
+                    .transition()
+                    .duration(500)
+                    .style('opacity', 0);
+            });
+        //adds text to the nodes
+        nodeEnter.append("text")
+            .text(function (d) {
+                return d.name.substring(0, 24);
+            })
+            .style("font-size", function (d) {
+                return Math.sqrt(d.radius / Math.PI) * 1 + "px";
+            })
+            .style("text-anchor", "middle")
+            .attr("fill", "black")
+            .attr('x', 0)
+            .attr('y', 0);
+        //adds Titles to svg depending on familyname Value
+        svg.append("text")
+            .attr("class", "titleFamily")
+            .text(function (d) {
+                return familyname;
+            })
+            .style("font-size", function (d) {
+                return 25 + "px";
+            })
+            .style("text-anchor", "middle")
+            .attr("fill", "black")
+            .attr('x', width / 2)
+            .attr('y', height / 2 - 210);
+
+        node = nodeEnter.merge(node)
+
+        for (var i = 0; i < nodes.length; i++) {
+            nodes[i].y = height / 2;
+            nodes[i].x = width / 2;
+        }
+        simulation.nodes(nodes)
+        simulation.alphaTarget(0.01).restart()
+    }
+
+    function delay(time) {
+        return new Promise(resolve => setTimeout(resolve, time));
+    }
+
+    function clicked(d) {
+        //svg.selectAll(".titleFamily").remove(); //removes the title svg so it can be added later without overlaps
+        if (!d3.event.defaultPrevented) {
+            if (d.chidren) { //if d.children is true
+                familyname = d.key; // familyname becomes the familyname of languages
+                roots = d.values; //roots which is what is spawned becomes the languages in that family
+            } else {
+                console.log(families);
+                familyname = families.title;
+                roots = families; //return to defaults
+            }
+
+            update()
+
+        }
+    }
+
+    function dragstarted(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.05).restart()
+        d.fx = d.x
+        d.fy = d.y
+    }
+
+    function dragged(d) {
+        d.fx = d3.event.x
+        d.fy = d3.event.y
+    }
+
+    function dragended(d) {
+        if (!d3.event.active) simulation.alphaTarget(0.01)
+        d.fx = null
+        d.fy = null
+    }
+
+
+    function zoomed() {
+        svg.attr('transform', d3.event.transform)
+    }
+
+    var zoom = d3.zoom()
+        .translateExtent([[0, 0], [width, height]])
+        .scaleExtent([1, 5])
+        .on('zoom', function () {
+            g.selectAll('path')
+                .attr('transform', d3.event.transform);
+        });
+
+    function langToFamlies(data) {
+        global_data = data
         var entries = d3.nest() //nests the data so its readable later
             .key(function (d) {
                 return d.classification.split(";")[0].split(",")[0];
@@ -161,6 +525,7 @@
             //sets default variable values so node creation works generic for both languages and language families
             entries[x].name = entries[x].key;
             entries[x].radius = entries[x].values.length;
+            //console.log(entries[x].values.length);
             //tooltip custom
             entries[x].tooltip = "Language Family:<br/>" + entries[x].key + "<br/>Number of Languages:<br/>" + entries[x].values.length;
             //allows the node to be clicked and children spawned
@@ -224,392 +589,6 @@
             entries[x].color = d3.interpolateRdYlGn(colr / ((entries[x].values.length) * 10));
 
         }
-
-        //map
-
-        d3.json("world.topojson").then(function (topology) {
-            //console.log(topojson.feature(topology, topology.objects.countries).features)
-            g.attr("class", "country")
-                .selectAll("path")
-                .data(topojson.feature(topology, topology.objects.countries).features)
-                .enter().append("path")
-                .attr("class", "country")
-                .attr("fill", function (d) {
-                    return (grnColor(densityMap[d.properties.name]));
-                })
-                //.attr("fill", "green")
-                .attr("d", path)
-                .on("mouseover", function (event, d) {
-                    //console.log("Country", event.properties.name);
-                    divMap.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-                    divMap.html(event.properties.name + "<br/>" + "Language number: " + densityMap[event.properties.name])
-                        .style('left', d3.event.pageX + 'px')
-                        .style('top', d3.event.pageY - 28 + 'px');
-                })
-                .on("mouseout", function (d) {
-                    divMap.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                })
-                .on("click", function(d){
-                    //console.log("Country Clicked:  ", d.properties.name);
-                    var country_name = d.properties.name;
-                    display_Families_Country(country_name);
-                });
-
-        });
-
-
-        //map
-        //Fill Sldier Bar
-        var fillSlider = d3
-        .sliderHorizontal()
-        .min(1)
-        .max(d3.max(entries, function (d) {
-            return d.values.length;
-        }))
-        .default([1,d3.max(entries, function (d) {
-            return d.values.length;
-        })])
-        .step(1)
-        .width(300)
-        .displayValue(true)
-        .fill('#2196f3')
-        .on('onchange', (val) => {
-            d3.select('p#value-fill').text(val[0] + " " + val[1]);
-        });
-
-        var sFill = d3
-            .select('div#fillSlider')
-            .append('svg')
-            .attr('width', 500)
-            .attr('height', 100)
-            .append('g')
-            .attr('transform', 'translate(30,30)');
-
-        sFill.call(fillSlider);
-        d3.select('p#value-fill').text((fillSlider.value()));
-        //slider - START
-        var upper =500, lower =1
-        orignal_entires = entries
-        var slider = d3
-            .sliderHorizontal()
-            .min(1)
-            .max(d3.max(entries, function (d) {
-                return d.values.length;
-            }))
-            .default([1,d3.max(entries, function (d) {
-                return d.values.length;
-            })])
-            .step(1)
-            .width(300)
-            .displayValue(true)
-            .fill('#2196f3')
-            .on('onchange', (val) => {
-                //where its set
-                //d3.select("#rangeLabel").text(val);
-                lower = val[0];
-                upper = val[1];
-                //d3.select('#rangeLabel').text("Language Families Between: " + val[0] + " " + val[1]);
-                //console.log("val0: ",val);
-                d3.select('#rangeLabel').text("Language Families with " + slider.value().join(" to ")+ " members");
-                setRadius(val);
-            });
-        
-        console.log("val[0]: ",lower);
-        console.log("val[1]: ",upper);
-        //d3.select('#rangeLabel').text("Language Families Between: " + lower + " " + upper);
-        d3.select('#rangeLabel').text("Language Families with " + slider.value().join(" to ")+ " members");
-            
-
-        //d3.select('#rangeLabel').append("svg").text("Families Between: " + val[0] + " " + val[1]);
-
-        d3.select('#slider')
-            .append('svg')
-            .attr('width', 500)
-            .attr('height', 100)
-            .append('g')
-            .attr('transform', 'translate(30,30)')
-            .call(slider);
-        //slider - END
-
-        ///families stores families
-        //roots is what is spawned
-        families = entries;
-        roots = families;
-        update();
-
-
-        function stop() {
-            simulation.stop()
-        }
-
-        function start() {
-            simulation.alphaTarget(.0025).restart();
-
-        }
-
-    });
-
-    //Function that 
-    function display_Families_Country(country_name)
-    {
-        svg.selectAll(".titleFamily").remove();
-        if(last_clicked == country_name)
-        {
-            console.log("RETURN ALL NODES")
-            families = orignal_entires.filter(function(d)
-            {
-                //console.log(global_data)
-                //console.log("D", d.values[0].country);
-                const countries_to_display = d.values[0].country.split(";")
-                //console.log("countries_to_display ", countries_to_display);
-                for(var i = 0; i < countries_to_display.length; i++)
-                {
-                    return d.values[i].country
-                }
-                
-            })
-            roots = families;
-            familyname = "Language Families";
-            last_clicked = " ";
-            update();
-            simulation.alphaTarget(.3).restart();
-        }
-        else if(last_clicked!=country_name)
-        {
-            const langNames = []
-            console.log("Return nodes from country ", country_name);
-            var num = 0
-            families = orignal_entires.filter(function(d)
-            {
-                //console.log(d)
-                for(var i = 0; i < d.values.length;i++)
-                {
-                    //console.log(d.key)
-                    //console.log(d.values[i])
-                    const countries_to_display = d.values[i].country.split(";")
-                    //console.log(countries_to_display)
-                    for(var j = 0; j < countries_to_display.length; j++)
-                    {
-                        //console.log(countries_to_display[j]);
-                        if(countries_to_display[j] == country_name)
-                        {
-
-                            num++;
-                            //console.log(country_name);
-                            //console.log(d.values);
-                            langNames.push(d.values[i])
-                            //d.values.name
-                            //console.log(d.values[i]);
-                            //return d.values[i];
-                        }
-                    }
-                }   
-            })
-            console.log(num);
-            console.log(langNames.length);
-            console.log(langNames);
-            families = langNames;
-            //console.log(k);
-            // console.log(langNames);
-            roots = families;
-            //console.log("roots", families);
-            familyname = country_name;
-            last_clicked = country_name;
-            update();
-            simulation.alphaTarget(.3).restart();
-            //familyname = "Language Families";
-        }
-        
-        
+        return entries;
     }
-
-    function setRadius(val)
-    {
-        //minRange = val[0]
-        //maxRange = val[1]
-        //console.log("val[0]: ",minRange);
-        //console.log("val[1]: ",maxRange);
-
-        families = orignal_entires.filter(function(d){
-            //console.log("Values", d.values.length);
-            return (val[0] <= d.values.length) &&  (d.values.length <= val[1]);
-        })
-        //families = entries;
-        roots = families;
-        update();
-        simulation.alphaTarget(.3).restart();
-
-    }
-
-    function ticked() {
-        link.attr("x1", function (d) {
-                return d.source.x;
-            })
-            .attr("y1", function (d) {
-                return d.source.y;
-            })
-            .attr("x2", function (d) {
-                return d.target.x;
-            })
-            .attr("y2", function (d) {
-                return d.target.y;
-            });
-
-        node
-            .attr('transform', function (d) {
-                return `translate(${d.x}, ${d.y})`
-            })
-    }
-
-    function update() {
-        const nodes = (roots)
-        if (nodes._values) {
-            console.log(node)
-        }
-
-        //spawns nodes
-        node = svg
-            .selectAll('.node')
-            .data(nodes, function (d) {
-                return d.name;
-            })
-        //deletes nodes
-        node.exit().remove();
-        svg.selectAll(".familyTitle").remove();
-
-        const nodeEnter = node
-            .enter()
-            .append("g")
-            .attr("class", "node")
-            .on('click', (d) => {
-                clicked(d); //when clicked removes the tooltip and also does the click function
-                div
-                    .transition()
-                    .duration(500)
-                    .style('opacity', 0)
-
-            })
-
-            .call(d3.drag()
-                .on("start", dragstarted)
-                .on("drag", dragged)
-                .on("end", dragended));
-
-        //spawns nodes
-        nodeEnter.append("circle")
-            .attr("r", function (d) {
-                return Math.sqrt(d.radius / Math.PI) * 5
-            })
-            .attr("fill", function (d, i) {
-                return d.color;
-            })
-            .on('mouseover', d => {
-                div
-                    .transition()
-                    .duration(200)
-                    .style('opacity', 0.9);
-                div
-                    .html(d.tooltip)
-                    .style('left', d3.event.pageX + 'px')
-                    .style('top', d3.event.pageY - 28 + 'px');
-            })
-            .on('mouseout', () => {
-                div
-                    .transition()
-                    .duration(500)
-                    .style('opacity', 0);
-            });
-        //adds text to the nodes
-        nodeEnter.append("text")
-            .text(function (d) {
-                return d.name.substring(0, 24);
-            })
-            .style("font-size", function (d) {
-                return Math.sqrt(d.radius / Math.PI) * 1 + "px";
-            })
-            .style("text-anchor", "middle")
-            .attr("fill", "black")
-            .attr('x', 0)
-            .attr('y', 0);
-        //adds Titles to svg depending on familyname Value
-        svg.append("text")
-            .attr("class", "titleFamily")
-            .text(function (d) {
-                return familyname;
-            })
-            .style("font-size", function (d) {
-                return 25 + "px";
-            })
-            .style("text-anchor", "middle")
-            .attr("fill", "black")
-            .attr('x', width / 2)
-            .attr('y', height / 2 - 210);
-
-        node = nodeEnter.merge(node)
-        simulation.nodes(nodes)
-    }
-
-
-
-    function clicked(d) {
-        svg.selectAll(".titleFamily").remove(); //removes the title svg so it can be added later without overlaps
-        if (!d3.event.defaultPrevented) {
-            if (d.chidren) { //if d.children is true
-                familyname = d.key; // familyname becomes the familyname of languages
-                roots = d.values; //roots which is what is spawned becomes the languages in that family
-                console.log(roots)
-            } else {
-                familyname = "Language Families"; //if it is false
-                roots = families; //return to defaults
-            }
-            update() //update
-
-            //my attempt to make the simulation more smooth. sets force higher before regular then normal to 
-            //put nodes in x and y spot faster
-            console.log("start")
-            simulation.force("x", d3.forceX(width / 2).strength(.6))
-                .force("y", d3.forceY(height / 2).strength(.6))
-            setTimeout(function () {
-                simulation.force("x", d3.forceX(width / 2).strength(.055))
-                    .force("y", d3.forceY(height / 2).strength(.055))
-            }, 3500);
-            console.log("end")
-
-        }
-    }
-
-    function dragstarted(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.005).restart()
-        d.fx = d.x
-        d.fy = d.y
-    }
-
-    function dragged(d) {
-        d.fx = d3.event.x
-        d.fy = d3.event.y
-    }
-
-    function dragended(d) {
-        if (!d3.event.active) simulation.alphaTarget(0.005)
-        d.fx = null
-        d.fy = null
-    }
-
-
-    function zoomed() {
-        svg.attr('transform', d3.event.transform)
-    }
-
-    var zoom = d3.zoom()
-        .translateExtent([[0, 0], [width, height]])
-        .scaleExtent([1, 5])
-        .on('zoom', function () {
-            g.selectAll('path')
-                .attr('transform', d3.event.transform);
-        });
-
     svgMap.call(zoom);
