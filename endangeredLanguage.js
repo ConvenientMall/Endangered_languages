@@ -453,12 +453,9 @@
 
         node = nodeEnter.merge(node)
 
-        for (var i = 0; i < nodes.length; i++) {
-            nodes[i].y = height / 2;
-            nodes[i].x = width / 2;
-        }
         simulation.nodes(nodes)
-        simulation.alphaTarget(0.01).restart()
+        simulation.alphaDecay(.5)
+        simulation.alphaTarget(0.075).restart()
     }
 
     function delay(time) {
