@@ -454,8 +454,9 @@
         node = nodeEnter.merge(node)
 
         simulation.nodes(nodes)
-        simulation.alphaDecay(.5)
-        simulation.alphaTarget(0.075).restart()
+        simulation.alpha(1)
+        simulation.alphaTarget(0.01)
+        simulation.alphaDecay(0.03).restart()
     }
 
     function delay(time) {
