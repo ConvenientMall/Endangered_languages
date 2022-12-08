@@ -44,3 +44,19 @@ svg {
     display: block;
     margin: auto;
 }
+
+
+.column {
+    float: left;
+    padding: 0px;
+}
+
+.left,
+.right {
+    width: 25%;
+}
+
+.middle1,
+.middle2 {
+    width: 25%;
+}
