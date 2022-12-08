@@ -186,7 +186,7 @@
                     divMap.transition()
                         .duration(200)
                         .style("opacity", .9);
-                    divMap.html(event.properties.name + " <br/>" + "Number of Languages: <br/> " + langNumber)
+                    divMap.html(event.properties.name + " <br/>" + "Number of Languages: <br/>" + langNumber)
                         .style('left', d3.event.pageX + 'px')
                         .style('top', d3.event.pageY - 28 + 'px');
                 })
@@ -397,12 +397,13 @@
         //console.log("val[0]: ",minRange);
         //console.log("val[1]: ",maxRange);
 
-        families = orignal_entires.filter(function (d) {
+        roots = families.filter(function (d) {
             //console.log("Values", d.values.length);
             return (val[0] <= d.values.length) && (d.values.length <= val[1]);
         })
-        //families = entries;
-        roots = families;
+
+        families.title = "Language Families";
+        //roots = families;
         update();
 
     }
