@@ -31,7 +31,7 @@ div.tooltipMap {
 }
 
 .country {
-    stroke: DarkGray;
+    stroke: Black;
     stroke-width: .25;
     stroke-linejoin: round;
 }

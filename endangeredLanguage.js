@@ -17,10 +17,13 @@
     last_clicked = " ";
 
     //Map stuff -start
-    var grnColor = d3.scaleThreshold()
+    var bluColor = d3.scaleThreshold()
         .domain([5, 10, 20, 40, 80, 160, 320, 640])
-        .range(d3.schemeRdYlGn[9]);
+        .range(d3.schemePuBu[9]);
 
+    var x = d3.scaleSqrt()
+        .domain([5, 640])
+        .rangeRound([700, 950]);
 
     var projection = d3.geoMercator()
         .translate([width / 2, height / 2])
@@ -40,7 +43,12 @@
     var path = d3.geoPath()
         .projection(projection);
 
-    var g = svgMap.append("g");
+    var g = svgMap.append("g")
+        .attr("class", "key")
+        .attr("transform", "translate(0,40)");
+
+
+
     //Map stuff -end
     //const transform = d3.zoomIdentity.translate(200, 0).scale(.1);
     //const zoomNodes = d3.zoom().scaleExtent([1 / 2, 100]).translateExtent([[-width, -height], [width * 2, height * 2]]).on('zoom', zoomed);
@@ -159,16 +167,26 @@
                 .enter().append("path")
                 .attr("class", "country")
                 .attr("fill", function (d) {
-                    return (grnColor(densityMap[d.properties.name]));
+                    if (densityMap[d.properties.name] > 0) {
+                        return (bluColor(densityMap[d.properties.name]));
+                    } else {
+                        return "LightCoral";
+                    }
                 })
                 //.attr("fill", "green")
                 .attr("d", path)
                 .on("mouseover", function (event, d) {
+                    var langNumber;
+                    if (densityMap[event.properties.name] == undefined) {
+                        langNumber = "Unknown";
+                    } else {
+                        langNumber = densityMap[event.properties.name];
+                    }
                     //console.log("Country", event.properties.name);
                     divMap.transition()
                         .duration(200)
                         .style("opacity", .9);
-                    divMap.html(event.properties.name + "<br/>" + "Language number: " + densityMap[event.properties.name])
+                    divMap.html(event.properties.name + " <br/>" + "Number of Languages: <br/> " + langNumber)
                         .style('left', d3.event.pageX + 'px')
                         .style('top', d3.event.pageY - 28 + 'px');
                 })
@@ -182,6 +200,50 @@
                     var country_name = d.properties.name;
                     display_Families_Country(country_name);
                 });
+            //Map Legend - Start
+            g.append("rect")
+                .attr("x", 690)
+                .attr("y", -18)
+                .attr("width", 270)
+                .attr("height", 44)
+                .attr("stroke", "#69a3b2")
+                .attr("fill", "white");
+
+            g.selectAll("rect")
+                .data(bluColor.range().map(function (d) {
+                    d = bluColor.invertExtent(d);
+                    if (d[0] == null) d[0] = x.domain()[0];
+                    if (d[1] == null) d[1] = x.domain()[1];
+                    return d;
+                }))
+                .enter().append("rect")
+                .attr("height", 8)
+                .attr("x", function (d) {
+                    return x(d[0]);
+                })
+                //.attr("y", 320)
+                .attr("width", function (d) {
+                    return x(d[1]) - x(d[0]);
+                })
+                .attr("fill", function (d) {
+                    return bluColor(d[0]);
+                });
+
+            g.append("text")
+                .attr("class", "caption")
+                .attr("x", x.range()[0])
+                .attr("y", -6)
+                .attr("fill", "#000")
+                .attr("text-anchor", "start")
+                .attr("font-weight", "bold")
+                .text("Number of Languages in Given Country");
+
+            g.call(d3.axisBottom(x)
+                    .tickSize(13)
+                    .tickValues(bluColor.domain()))
+                .select(".domain")
+                .remove();
+            //Map Legend - End
 
         });
 
